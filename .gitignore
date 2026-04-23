@@ -1,0 +1,37 @@
+# ROS 2 / colcon workspace build outputs
+/build/
+/install/
+/log/
+
+# Nested generated build/install/log folders that may appear inside packages
+**/build/
+**/install/
+**/log/
+
+# colcon generated markers
+**/.built_by
+**/.colcon_install_layout
+
+# Python cache and tooling
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / editor files
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db

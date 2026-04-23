@@ -1,0 +1,662 @@
+<?xml version="1.0" ?>
+<!--
+  patrol_house.world
+  6-room house world for a surveillance/patrol robot.
+
+  Room layout (top-down view):
+    [R1: Living Room] --D1-- [R2: Kitchen] --D2-- [R3: Bedroom 1]
+           |                                              |
+          D6                                            D3
+           |                                              |
+    [R6: Hallway]  --D5-- [R5: Bathroom] --D4-- [R4: Bedroom 2]
+
+  Rooms form a closed loop → robot can patrol indefinitely.
+  All walls are 0.3 m thick, 2.5 m tall.
+  Doors are 0.9 m wide, 2.0 m tall (wall gap + door frame model).
+  Room dimensions (interior):
+    R1 Living Room  : 6 x 5 m  (x: -9.85 .. -3.85,  y:  1.15 .. 6.15)
+    R2 Kitchen      : 5 x 5 m  (x: -2.85 ..  2.15,  y:  1.15 .. 6.15)
+    R3 Bedroom 1    : 5 x 5 m  (x:  3.15 ..  8.15,  y:  1.15 .. 6.15)
+    R4 Bedroom 2    : 5 x 5 m  (x:  3.15 ..  8.15,  y: -5.85 .. -0.85)
+    R5 Bathroom     : 5 x 5 m  (x: -2.85 ..  2.15,  y: -5.85 .. -0.85)
+    R6 Hallway      : 6 x 5 m  (x: -9.85 .. -3.85,  y: -5.85 .. -0.85)
+
+  Suggested patrol waypoints (robot centre):
+    W1  -6.85  3.65   (Living Room centre)
+    W2   0.00  3.65   (Kitchen centre)
+    W3   5.65  3.65   (Bedroom 1 centre)
+    W4   5.65 -3.35   (Bedroom 2 centre)
+    W5   0.00 -3.35   (Bathroom centre)
+    W6  -6.85 -3.35   (Hallway centre)
+-->
+<sdf version="1.6">
+  <world name="patrol_house">
+
+    <!-- ======================================================
+         ENVIRONMENT
+    ====================================================== -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!-- ======================================================
+         PHYSICS
+    ====================================================== -->
+    <physics type="ode">
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>1000</iters>
+          <sor>1.3</sor>
+        </solver>
+        <constraints>
+          <cfm>0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>100</real_time_update_rate>
+      <gravity>0 0 -9.8</gravity>
+    </physics>
+
+    <!-- ======================================================
+         SCENE LIGHTING
+    ====================================================== -->
+    <scene>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <!-- Ceiling lights (one per room) -->
+    <light name="light_living_room" type="point">
+      <pose>-6.85 3.65 2.4 0 0 0</pose>
+      <diffuse>1 1 0.95 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation><range>6</range><constant>0.3</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="light_kitchen" type="point">
+      <pose>0.00 3.65 2.4 0 0 0</pose>
+      <diffuse>1 1 0.95 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation><range>6</range><constant>0.3</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="light_bedroom1" type="point">
+      <pose>5.65 3.65 2.4 0 0 0</pose>
+      <diffuse>1 1 0.95 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation><range>6</range><constant>0.3</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="light_bedroom2" type="point">
+      <pose>5.65 -3.35 2.4 0 0 0</pose>
+      <diffuse>1 1 0.95 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation><range>6</range><constant>0.3</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="light_bathroom" type="point">
+      <pose>0.00 -3.35 2.4 0 0 0</pose>
+      <diffuse>1 1 0.95 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation><range>6</range><constant>0.3</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="light_hallway" type="point">
+      <pose>-6.85 -3.35 2.4 0 0 0</pose>
+      <diffuse>1 1 0.95 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation><range>6</range><constant>0.3</constant><linear>0.1</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+
+    <!-- ======================================================
+         SHARED WALL MATERIAL (grey plaster)
+    ====================================================== -->
+    <!-- All walls share the same material block inline -->
+
+    <!-- ======================================================
+         OUTER PERIMETER WALLS
+         The entire house occupies a 19.7 x 12.3 m footprint
+         (outer edge to outer edge, including 0.3 m wall thickness).
+         Origin (0,0) sits at the interior centre of the 6-room block.
+    ====================================================== -->
+
+    <!-- Outer South wall  (y = -6.0, full width) -->
+    <model name="wall_outer_south">
+      <static>true</static>
+      <pose>-0.925 -6.0 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>19.7 0.3 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>19.7 0.3 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Outer North wall  (y = 6.3, full width) -->
+    <model name="wall_outer_north">
+      <static>true</static>
+      <pose>-0.925 6.3 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>19.7 0.3 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>19.7 0.3 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Outer West wall  (x = -10.0, full depth) -->
+    <model name="wall_outer_west">
+      <static>true</static>
+      <pose>-10.0 0.15 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 12.3 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 12.3 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Outer East wall  (x = 8.3, full depth) -->
+    <model name="wall_outer_east">
+      <static>true</static>
+      <pose>8.3 0.15 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 12.3 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 12.3 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ======================================================
+         INTERIOR WALLS
+         Naming convention: wall_<rowNS>_<segment>
+         Walls run either E-W (along y=const) or N-S (along x=const).
+    ====================================================== -->
+
+    <!-- ─── Horizontal interior wall: y = 0.85 (middle row divider) ──────── -->
+    <!-- West segment: from outer west wall to D6 gap  (x: -9.85 .. -10.15 is outer;
+         interior from -9.7 to -10.15+0.3=-9.85, so segment start x=-9.85)
+         D6 (R1↔R6) centred at x=-6.85, gap widened to -7.45..-6.25 for robot clearance -->
+    <model name="wall_mid_w1">
+      <static>true</static>
+      <pose>-8.650 0.85 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>2.40 0.3 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>2.40 0.3 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- West segment east of D6: x = -6.25 .. -3.55 (length=2.70, centre=-4.900) -->
+    <model name="wall_mid_w2">
+      <static>true</static>
+      <pose>-4.900 0.85 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>2.70 0.3 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>2.70 0.3 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Centre segment R2↔R5: x = -2.85 .. 2.15 (length=5.0, centre=-0.35)
+         No door between R2 and R5 — full wall -->
+    <model name="wall_mid_c">
+      <static>true</static>
+      <pose>-0.35 0.85 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>5.0 0.3 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>5.0 0.3 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- East segment R3↔R4: x = 3.15 .. 8.15 (length=5.0)
+         D3 (R3↔R4) centred at x=5.65, gap widened to 4.85..6.45 for extra clearance
+         wall west 3.15..4.85 (len=1.70, cen=4.00)
+         wall east 6.45..8.15 (len=1.70, cen=7.30) -->
+    <model name="wall_mid_e1">
+      <static>true</static>
+      <pose>4.000 0.85 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>1.70 0.3 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>1.70 0.3 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_mid_e2">
+      <static>true</static>
+      <pose>7.300 0.85 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>1.70 0.3 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>1.70 0.3 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ─── Vertical interior wall: x = -3.55 (divides R1/R6 from R2/R5) ─── -->
+    <!-- North half: y = 0.85..6.15 — no door (full) -->
+    <!-- D1 (R1↔R2) centred at y=3.65, gap 3.20..4.10 →
+         north seg: 4.10..6.15 (len=2.05, cen=5.125), south seg: 0.85..3.20 (len=2.35, cen=2.025) -->
+    <model name="wall_ns_r1r2_n">
+      <static>true</static>
+      <pose>-3.55 5.125 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 2.05 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 2.05 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_ns_r1r2_s">
+      <static>true</static>
+      <pose>-3.55 2.025 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 2.35 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 2.35 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- South half: y = -5.85..-0.85
+         D5 (R6↔R5) centred at y=-3.35 with widened gap -3.95..-2.75 (1.20 m) -->
+    <model name="wall_ns_r6r5_n">
+      <static>true</static>
+      <pose>-3.55 -1.800 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 1.90 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 1.90 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_ns_r6r5_s">
+      <static>true</static>
+      <pose>-3.55 -4.900 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 1.90 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 1.90 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ─── Vertical interior wall: x = 3.15 (divides R2/R5 from R3/R4) ─── -->
+    <!-- D2 (R2↔R3) centred at y=3.65, gap 3.20..4.10 -->
+    <model name="wall_ns_r2r3_n">
+      <static>true</static>
+      <pose>3.15 5.125 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 2.05 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 2.05 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_ns_r2r3_s">
+      <static>true</static>
+      <pose>3.15 2.025 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 2.35 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 2.35 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- D4 (R5↔R4) centred at y=-3.35, widened gap -3.95..-2.75 -->
+    <model name="wall_ns_r5r4_n">
+      <static>true</static>
+      <pose>3.15 -1.800 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 1.90 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 1.90 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_ns_r5r4_s">
+      <static>true</static>
+      <pose>3.15 -4.900 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.3 1.90 2.5</size></box></geometry></collision>
+        <visual name="vis"><geometry><box><size>0.3 1.90 2.5</size></box></geometry>
+          <material><ambient>0.85 0.82 0.78 1</ambient><diffuse>0.85 0.82 0.78 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ======================================================
+         DOOR FRAMES
+         Each door is a thin (0.05 m) box placed in the wall gap.
+         0.9 m wide, 2.0 m tall, 0.3 m deep (same as wall thickness).
+         Doors are left OPEN (static frames only, no joint).
+         Robot navigates through the open gap.
+
+         Door numbering follows the patrol loop:
+           D1: R1→R2  (north wall, x=-3.55, y=3.65)
+           D2: R2→R3  (north wall, x=3.15,  y=3.65)
+           D3: R3→R4  (east  wall, x=5.65,  y=0.85)
+           D4: R4→R5  (south wall, x=3.15,  y=-3.35)
+           D5: R5→R6  (south wall, x=-3.55, y=-3.35)
+           D6: R6→R1  (west  wall, x=-6.85, y=0.85)
+    ====================================================== -->
+
+    <!-- D1: R1↔R2 – N-S wall at x=-3.55, centred y=3.65 -->
+    <model name="door_frame_D1">
+      <static>true</static>
+      <pose>-3.55 3.65 1.0 0 0 0</pose>
+      <link name="link">
+        <!-- Door frame sides (jambs) -->
+        <visual name="jamb_left">
+          <pose>0 -0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="jamb_right">
+          <pose>0 0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="lintel">
+          <pose>0 0 1.05 0 0 0</pose>
+          <geometry><box><size>0.3 0.9 0.1</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- D2: R2↔R3 – N-S wall at x=3.15, centred y=3.65 -->
+    <model name="door_frame_D2">
+      <static>true</static>
+      <pose>3.15 3.65 1.0 0 0 0</pose>
+      <link name="link">
+        <visual name="jamb_left">
+          <pose>0 -0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="jamb_right">
+          <pose>0 0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="lintel">
+          <pose>0 0 1.05 0 0 0</pose>
+          <geometry><box><size>0.3 0.9 0.1</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- D3: R3↔R4 – E-W wall at y=0.85, centred x=5.65 (rotated 90°) -->
+    <model name="door_frame_D3">
+      <static>true</static>
+      <pose>5.65 0.85 1.0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="jamb_left">
+          <pose>0 -0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="jamb_right">
+          <pose>0 0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="lintel">
+          <pose>0 0 1.05 0 0 0</pose>
+          <geometry><box><size>0.3 0.9 0.1</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- D4: R4↔R5 – N-S wall at x=3.15, centred y=-3.35 -->
+    <model name="door_frame_D4">
+      <static>true</static>
+      <pose>3.15 -3.35 1.0 0 0 0</pose>
+      <link name="link">
+        <visual name="jamb_left">
+          <pose>0 -0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="jamb_right">
+          <pose>0 0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="lintel">
+          <pose>0 0 1.05 0 0 0</pose>
+          <geometry><box><size>0.3 0.9 0.1</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- D5: R5↔R6 – N-S wall at x=-3.55, centred y=-3.35 -->
+    <model name="door_frame_D5">
+      <static>true</static>
+      <pose>-3.55 -3.35 1.0 0 0 0</pose>
+      <link name="link">
+        <visual name="jamb_left">
+          <pose>0 -0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="jamb_right">
+          <pose>0 0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="lintel">
+          <pose>0 0 1.05 0 0 0</pose>
+          <geometry><box><size>0.3 0.9 0.1</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- D6: R6↔R1 – E-W wall at y=0.85, centred x=-6.85 (rotated 90°) -->
+    <model name="door_frame_D6">
+      <static>true</static>
+      <pose>-6.85 0.85 1.0 0 0 1.5708</pose>
+      <link name="link">
+        <visual name="jamb_left">
+          <pose>0 -0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="jamb_right">
+          <pose>0 0.5 0 0 0 0</pose>
+          <geometry><box><size>0.3 0.05 2.0</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+        <visual name="lintel">
+          <pose>0 0 1.05 0 0 0</pose>
+          <geometry><box><size>0.3 0.9 0.1</size></box></geometry>
+          <material><ambient>0.6 0.45 0.3 1</ambient><diffuse>0.6 0.45 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ======================================================
+         FLOOR TILES (one per room for visual room distinction)
+    ====================================================== -->
+
+    <!-- R1: Living Room – warm beige -->
+    <model name="floor_living_room">
+      <static>true</static>
+      <pose>-6.85 3.65 0.005 0 0 0</pose>
+      <link name="link">
+        <visual name="vis">
+          <geometry><box><size>6.0 5.0 0.01</size></box></geometry>
+          <material><ambient>0.95 0.90 0.80 1</ambient><diffuse>0.95 0.90 0.80 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R2: Kitchen – light grey tile -->
+    <model name="floor_kitchen">
+      <static>true</static>
+      <pose>-0.35 3.65 0.005 0 0 0</pose>
+      <link name="link">
+        <visual name="vis">
+          <geometry><box><size>5.0 5.0 0.01</size></box></geometry>
+          <material><ambient>0.88 0.88 0.88 1</ambient><diffuse>0.88 0.88 0.88 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R3: Bedroom 1 – pale blue -->
+    <model name="floor_bedroom1">
+      <static>true</static>
+      <pose>5.65 3.65 0.005 0 0 0</pose>
+      <link name="link">
+        <visual name="vis">
+          <geometry><box><size>5.0 5.0 0.01</size></box></geometry>
+          <material><ambient>0.82 0.88 0.95 1</ambient><diffuse>0.82 0.88 0.95 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R4: Bedroom 2 – pale green -->
+    <model name="floor_bedroom2">
+      <static>true</static>
+      <pose>5.65 -3.35 0.005 0 0 0</pose>
+      <link name="link">
+        <visual name="vis">
+          <geometry><box><size>5.0 5.0 0.01</size></box></geometry>
+          <material><ambient>0.82 0.95 0.85 1</ambient><diffuse>0.82 0.95 0.85 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R5: Bathroom – white tile -->
+    <model name="floor_bathroom">
+      <static>true</static>
+      <pose>-0.35 -3.35 0.005 0 0 0</pose>
+      <link name="link">
+        <visual name="vis">
+          <geometry><box><size>5.0 5.0 0.01</size></box></geometry>
+          <material><ambient>0.97 0.97 0.97 1</ambient><diffuse>0.97 0.97 0.97 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R6: Hallway – dark wood -->
+    <model name="floor_hallway">
+      <static>true</static>
+      <pose>-6.85 -3.35 0.005 0 0 0</pose>
+      <link name="link">
+        <visual name="vis">
+          <geometry><box><size>6.0 5.0 0.01</size></box></geometry>
+          <material><ambient>0.55 0.38 0.22 1</ambient><diffuse>0.55 0.38 0.22 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ======================================================
+         SIMPLE FURNITURE (collision-free, visual only)
+         Keeps rooms recognisable and gives the robot's camera
+         something to observe during patrol.
+    ====================================================== -->
+
+    <!-- R1: Sofa -->
+    <model name="sofa">
+      <static>true</static>
+      <pose>-8.5 5.2 0.35 0 0 0</pose>
+      <link name="link">
+        <visual name="vis"><geometry><box><size>2.2 0.8 0.7</size></box></geometry>
+          <material><ambient>0.4 0.3 0.6 1</ambient><diffuse>0.4 0.3 0.6 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R2: Kitchen counter -->
+    <model name="kitchen_counter">
+      <static>true</static>
+      <pose>-2.1 5.5 0.45 0 0 0</pose>
+      <link name="link">
+        <visual name="vis"><geometry><box><size>1.2 0.6 0.9</size></box></geometry>
+          <material><ambient>0.8 0.75 0.65 1</ambient><diffuse>0.8 0.75 0.65 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R3: Bed (Bedroom 1) -->
+    <model name="bed_1">
+      <static>true</static>
+      <pose>6.8 4.8 0.3 0 0 0</pose>
+      <link name="link">
+        <visual name="vis"><geometry><box><size>1.6 2.0 0.6</size></box></geometry>
+          <material><ambient>0.9 0.85 0.75 1</ambient><diffuse>0.9 0.85 0.75 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R4: Bed (Bedroom 2) -->
+    <model name="bed_2">
+      <static>true</static>
+      <pose>6.8 -2.2 0.3 0 0 0</pose>
+      <link name="link">
+        <visual name="vis"><geometry><box><size>1.6 2.0 0.6</size></box></geometry>
+          <material><ambient>0.85 0.78 0.9 1</ambient><diffuse>0.85 0.78 0.9 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R5: Bathtub -->
+    <model name="bathtub">
+      <static>true</static>
+      <pose>1.4 -4.8 0.25 0 0 0</pose>
+      <link name="link">
+        <visual name="vis"><geometry><box><size>0.8 1.6 0.5</size></box></geometry>
+          <material><ambient>0.95 0.95 0.98 1</ambient><diffuse>0.95 0.95 0.98 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- R6: Hall table -->
+    <model name="hall_table">
+      <static>true</static>
+      <pose>-8.8 -4.0 0.4 0 0 0</pose>
+      <link name="link">
+        <visual name="vis"><geometry><box><size>1.0 0.5 0.8</size></box></geometry>
+          <material><ambient>0.55 0.38 0.22 1</ambient><diffuse>0.55 0.38 0.22 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ======================================================
+         SPHERICAL COORDINATES (kept from reference file)
+    ====================================================== -->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>47.3667</latitude_deg>
+      <longitude_deg>8.5500</longitude_deg>
+      <elevation>500.0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
+  </world>
+</sdf>
+
